@@ -1,0 +1,67 @@
+
+
+function tabview(id){
+  this.tabview_id = id; // store the id of the containing div
+	this.$tabview = $('#' + id); // store the jQuery object for the tabview
+
+	this.init();
+}
+
+tabview.prototype.init = function(){
+	var $tabs_wrap = this.$tabview.children('ul').attr({'class': 'tabview-list', 'role': 'tablist'});
+	var $panels_wrap = this.$tabview.children('div').addClass('tabview-panel');
+	var $panels = $panels_wrap.children('div').attr({'class': 'tab-panel', 'role': 'tabpanel', 'aria-hidden': 'true', 'tabindex': '0'}).hide();
+
+	$tabs_wrap.find('li>a').each(function(index){
+			var tabId = 'tab-' + $(this).attr('href').slice(1);
+			$(this).attr({'id': tabId, 'role': 'tab', 'aria-selected': 'false', 'tabindex': '-1'}).parent().attr('role', 'presentation');
+			$panels.eq(index).attr('aria-labelledby', tabId);
+
+			$(this).click(function(e){
+					e.preventDefault();
+					//change state of previously selected tabList item
+					$tabs_wrap.children('li.tab-selected').removeClass('tab-selected').children('a').attr({'aria-selected': 'false', 'tabindex': '-1'});
+					//hide previously selected tabPanel
+					$panels_wrap.children('.tab-panel:visible').attr('aria-hidden', 'true').hide();
+					//show newly selected tabPanel
+					$panels_wrap.children('.tab-panel').eq( $(this).parent().index() ).attr('aria-hidden', 'false').show();
+					//set state of newly selected tab list item
+					$(this).attr({'aria-selected': 'true', 'tabindex': '0'}).parent().addClass('tab-selected');
+					$(this).focus();
+			});
+		}
+	);
+
+	//set keydown events on tabList item for navigating tabs
+	$tabs_wrap.on('keydown', 'a',
+		function (e) {
+			switch (e.which) {
+				case 37: 
+				case 38: {
+					if ($(this).parent().prev().length!=0) {
+						$(this).parent().prev().find('a').click();
+					} else {
+						$tabs_wrap.find('li:last>a').click();
+					}
+					break;
+				}
+				case 39: 
+				case 40: {
+					if ($(this).parent().next().length!=0) {
+						$(this).parent().next().find('a').click();
+					} else {
+						$tabs_wrap.find('li:first>a').click();
+					}
+					break;
+				}
+			}
+		}
+	);
+
+	//show the first tabPanel
+	this.$tabview.find('.tab-panel:first').attr('aria-hidden', 'false').show();
+
+	//set state for the first tabsList li
+	$tabs_wrap.find('li:first').addClass('tab-selected').find('a').attr({'aria-selected': 'true', 'tabindex': '0'});
+
+}
